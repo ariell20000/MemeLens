@@ -63,7 +63,7 @@ CREATE TABLE memes (
     id              BIGSERIAL PRIMARY KEY,
     image_key       TEXT NOT NULL UNIQUE,        -- S3 object key
     image_url       TEXT NOT NULL,                -- public/CloudFront-free S3 URL
-    source          TEXT NOT NULL,                -- 'kaggle_r_memes' | 'kaggle_meme_generator' | 'manual_hebrew'
+    source          TEXT NOT NULL,                -- 'kaggle_meme_generator' | 'manual'
     language        TEXT NOT NULL DEFAULT 'en',   -- 'en' | 'he' | 'mixed'
     caption         TEXT,                          -- original title/caption if the source provided one
     embedding       VECTOR(512) NOT NULL,          -- clip-ViT-B-32-multilingual-v1 output, cosine-normalized
@@ -74,7 +74,7 @@ CREATE TABLE memes (
 );
 
 -- HNSW over IVFFlat: IVFFlat needs a representative sample at index-build time
--- (a poor fit for incremental one-by-one manual Hebrew-meme inserts done after
+-- (a poor fit for incremental one-by-one manual meme inserts done after
 -- the bulk load). HNSW builds incrementally with good recall from row 1, and at
 -- 5k-10k rows the index cost is a non-issue.
 CREATE INDEX memes_embedding_hnsw_idx
@@ -97,7 +97,7 @@ img_emb = model.encode(Image.open(path))     # ingestion
 text_emb = model.encode("חתול מצחיק")         # query — same 512-d space
 ```
 
-- **Bulk ingestion** (`scripts/ingest_kaggle.py`, run locally, not deployed): for each row in a chosen Kaggle dataset (pulled via the `kaggle` CLI) — load image → embed → upload to S3 via boto3 → insert row, carrying over any caption/title the dataset provides. Batch-insert for throughput; budget ~10–25 min CPU time for 10k images.
+- **Bulk ingestion** (`scripts/ingest_kaggle.py`, run locally, not deployed): pulls the `electron0zero/memegenerator-dataset` Kaggle dataset (classic captioned template memes) via the `kaggle` CLI, tagged `source='kaggle_meme_generator'` — for each row: load image → embed → upload to S3 via boto3 → insert row, carrying over the dataset's caption/title. Batch-insert for throughput. This is the only bulk/automated source; the only other source is the manual admin-added batch below — no second Kaggle dataset.
 - **Manual single-meme add** (for the user's own hand-picked Hebrew memes): a small **admin POST endpoint**, simple enough to hit repeatedly by hand (curl/Postman/a tiny local form) while going through a WhatsApp/Facebook-sourced batch one at a time. Both paths share one `ingest_service.py` module (embed → upload → insert) — one code path, not duplicated logic.
 
 *(Hand-write the embedding/ingestion logic — new territory: first time integrating a multilingual CLIP model and reasoning about what its output actually represents.)*
@@ -136,7 +136,7 @@ Rate limiting is explicitly out of scope for v1 (Future Work).
 - Repo skeleton, Docker Compose with local Postgres+pgvector, Alembic migration for the schema above.
 - `kaggle` CLI download of the chosen dataset; hand-write `ingest_service.py` + `scripts/ingest_kaggle.py`.
 - Run bulk ingestion locally; spot-check nearest-neighbor results directly in `psql` with `<=>` before building any API around it.
-- Build the admin add-endpoint + JWT auth (JWT logic can lean on Claude Code + review, since it's a repeat of slack-kudos-bot); manually add the curated Hebrew batch through it. Checkpoint: confirm cross-lingual search works both directions.
+- Build the admin add-endpoint + JWT auth (JWT logic can lean on Claude Code + review, since it's a repeat of slack-kudos-bot); manually add the curated batch through it. Checkpoint: confirm cross-lingual search works both directions.
 
 **Phase 2 — Search API** *(mixed: query logic hand-written, route/response-model boilerplate can lean on Claude Code + review)*
 - `/api/search`, Pydantic response models, the `<=>` query — hand-write the query itself.
