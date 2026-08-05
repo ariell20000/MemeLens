@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+pydantic-settings
+sqlalchemy
+psycopg[binary]
+alembic
+pgvector
+python-jose[cryptography]
+python-multipart
+boto3
+sentence-transformers
+mangum
+
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
