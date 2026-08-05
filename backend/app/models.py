@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import BigInteger, Integer, Text, TIMESTAMP, text
+from sqlalchemy import TIMESTAMP, BigInteger, Integer, Text, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
