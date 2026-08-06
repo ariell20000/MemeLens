@@ -8,7 +8,7 @@ from app.config import settings
 from app.db import SessionLocal
 from app.models import Meme
 
-model = SentenceTransformer(settings.embedding_model_name)
+image_model = SentenceTransformer("clip-ViT-B-32")
 s3_client = boto3.client(
     "s3",
     aws_access_key_id=settings.aws_access_key_id,
@@ -17,7 +17,7 @@ s3_client = boto3.client(
 )
 
 def embed_image(image: Image.Image) -> list[float]:
-    return model.encode(image, normalize_embeddings=True).tolist()
+    return image_model.encode(image, normalize_embeddings=True).tolist()
 
 
 def upload_image(image_bytes: bytes, content_type: str) -> tuple[str, str]:

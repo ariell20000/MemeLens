@@ -9,6 +9,7 @@ python-jose[cryptography]
 python-multipart
 boto3
 sentence-transformers
+pillow
 mangum
 
 --extra-index-url https://download.pytorch.org/whl/cpu
