@@ -97,8 +97,8 @@ img_emb = model.encode(Image.open(path))     # ingestion
 text_emb = model.encode("חתול מצחיק")         # query — same 512-d space
 ```
 
-- **Bulk ingestion** (`scripts/ingest_kaggle.py`, run locally, not deployed): pulls the `electron0zero/memegenerator-dataset` Kaggle dataset (classic captioned template memes) via the `kaggle` CLI, tagged `source='kaggle_meme_generator'` — for each row: load image → embed → upload to S3 via boto3 → insert row, carrying over the dataset's caption/title. Batch-insert for throughput. This is the only bulk/automated source; the only other source is the manual admin-added batch below — no second Kaggle dataset.
-- **Manual single-meme add** (for the user's own hand-picked Hebrew memes): a small **admin POST endpoint**, simple enough to hit repeatedly by hand (curl/Postman/a tiny local form) while going through a WhatsApp/Facebook-sourced batch one at a time. Both paths share one `ingest_service.py` module (embed → upload → insert) — one code path, not duplicated logic.
+- **Bulk ingestion** (`scripts/ingest_kaggle.py`, run locally, not deployed): pulls the `gmorinan/memes-classified-and-labelled` Kaggle dataset (classic meme templates, organized by template name, ~5,700 images) via the `kaggle` CLI, tagged `source='kaggle_meme_generator'` — for each row in `metadata.csv`: load image → embed → upload to S3 via boto3 → insert row, carrying over the template name as caption. Batch-insert for throughput. This is the only bulk/automated source; the only other source is the manual admin-added batch below — no second Kaggle dataset.
+- **Manual single-meme add** (for the user's own hand-picked memes): a small **admin POST endpoint**, simple enough to hit repeatedly by hand (curl/Postman/a tiny local form) while going through a WhatsApp/Facebook-sourced batch one at a time. Both paths share one `ingest_service.py` module (embed → upload → insert) — one code path, not duplicated logic.
 
 *(Hand-write the embedding/ingestion logic — new territory: first time integrating a multilingual CLIP model and reasoning about what its output actually represents.)*
 
