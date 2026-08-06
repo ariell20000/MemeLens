@@ -9,6 +9,7 @@ from app.db import SessionLocal
 from app.models import Meme
 
 image_model = SentenceTransformer("clip-ViT-B-32")
+text_model = SentenceTransformer(settings.embedding_model_name)
 s3_client = boto3.client(
     "s3",
     aws_access_key_id=settings.aws_access_key_id,
@@ -61,3 +62,7 @@ def ingest_meme(
         return meme
     finally:
         db.close()
+
+
+def embed_text(text: str) -> list[float]:
+    return text_model.encode(text, normalize_embeddings=True).tolist()
