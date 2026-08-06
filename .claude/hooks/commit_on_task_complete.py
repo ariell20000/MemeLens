@@ -10,8 +10,16 @@ def main() -> None:
     if tool_input.get("status") != "completed":
         return
 
-    repo_dir = payload.get("cwd", ".")
     task_id = tool_input.get("taskId", "?")
+
+    toplevel = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        cwd=payload.get("cwd", "."),
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    repo_dir = toplevel.stdout.strip()
 
     subprocess.run(["git", "add", "-A"], cwd=repo_dir, check=True)
 

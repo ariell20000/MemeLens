@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python .claude/hooks/commit_on_task_complete.py"
+            "command": "python C:/Users/ariel/Desktop/MemeLens/.claude/hooks/commit_on_task_complete.py"
           }
         ]
       }
